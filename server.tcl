@@ -98,8 +98,6 @@ namespace eval HttpServer {
 		variable handlers
 		variable default_handler
 
-		puts "finding match for $url"
-
 		foreach handler $handlers {
 			set ns [lindex $handler 0]
 			set nspath [lindex $handler 1]
