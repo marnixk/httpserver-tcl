@@ -3,6 +3,7 @@
 #
 namespace eval HttpServer {
 
+	variable debug 0
 	variable state
 	variable handlers
 	variable default_handler {FileServeSocket}
@@ -21,7 +22,7 @@ namespace eval HttpServer {
 	proc accept {chan addr port} {
 		variable state
 
-		puts "$addr:$port started"
+		log "$addr:$port started"
 
 		fconfigure $chan -buffering line
 		fconfigure $chan -blocking 0
@@ -29,6 +30,7 @@ namespace eval HttpServer {
 
 		set state($chan) read-url
 		set state($chan,connected) false
+
 	}
 
 	#
@@ -74,7 +76,7 @@ namespace eval HttpServer {
 		variable state
 
 		set url [lindex $line 1]
-		puts ".. url - $url"
+		log ".. url - $url"
 
 		set handler [find-matching-handler $url]
 
@@ -107,7 +109,7 @@ namespace eval HttpServer {
 			}
 		}
 
-		return [list "/" $default_handler]
+		return [list $default_handler "/"]
 	}
 
 	#
@@ -136,7 +138,33 @@ namespace eval HttpServer {
 		return $uri
 	}
 
+
+	#
+	#	Log something to the console
+	#
+	proc log {text} {
+		variable debug
+		if {$debug != 0} then {
+			puts "debug: $text"
+		}
+	}
 	
+	#
+	#  Close a connection and clean up after ourselves
+	#
+	proc close {chan} {
+		variable state
+
+		# clean up all state that starts with $chan 
+		foreach name [array names state] {
+			if {[string range $name 0 [string length $chan]-1] == $chan} {
+				unset state($name)
+			}
+		}
+		
+		# clean up channel
+		::close $chan
+	}
 
 }
 
@@ -145,5 +173,5 @@ namespace eval HttpServer {
 #
 proc httpserver'path {path} {
 	set handler_ns [uplevel 1 namespace current]
-	lappend HttpServer::handlers [list $handler_ns $path ]
+	lappend HttpServer::handlers [list $handler_ns $path]
 }
