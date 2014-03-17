@@ -96,6 +96,14 @@ namespace eval FileServeSocket {
 	}
 
 	#
+	#	Strip request parameters
+	#
+	proc strip-request-parameters {url} {
+		lassign [split $url "?"] url request
+		return $url
+	}
+
+	#
 	#   Try to find the file in the registered bases and stream it efficiently
 	#
 	proc send-file {chan} {
@@ -106,6 +114,8 @@ namespace eval FileServeSocket {
 		if { $url == "/" } then {
 			set url "/index.html"
 		}
+
+		set url [strip-request-parameters $url]
 
 		# get a file to match
 		array set file_info [find-first-match $url]
