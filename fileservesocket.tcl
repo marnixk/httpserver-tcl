@@ -1,10 +1,16 @@
 #
 #   Default fallback for requests coming into the server.
 #
-namespace eval FileServeSocket {
+module FileServeSocket {
+	
+	include HttpServer::HandlerBase
 
 	variable debug 0
 	variable contexts
+
+	#
+	#	List of common, supported mimetypes
+	#
 	variable mimetypes {
 		.html text/html
 		.css text/css
@@ -17,96 +23,14 @@ namespace eval FileServeSocket {
 		.gif image/gif
 	}
 
-	#
-	#   Read from the http socket and dispatch it to the current state's handler
-	#
-	proc read-from-socket {chan} {
-
-		set left [gets $chan line]
-		if { $left < 0 } {
-			if { [eof $chan] } {
-				close $chan
-				return
-			}
-		} else {
-			$HttpServer::state($chan) $chan $line
-		}
-	}
-
-	#
-	#	Read headers from the request
-	#
-	proc read-headers {chan line} {
-
-		set headername [string range [lindex $line 0] 0 end-1]
-		set value [string range $line [expr {2 + [string length $headername]}] end]
-		
-		log " .. $headername: $value"
-
-		set HttpServer::state($chan,$headername) $value
-
-		if {$line == ""} then {
-			log ".. done reading headers"
-			send-file $chan
-		}
-	}
-
-	#
-	#   Find the first file match in the bases we are tracking.
-	#
-	proc find-first-match {filename} {
-		variable contexts
-
-		foreach ctx $contexts {
-			set lookingfor "$ctx/$filename"
-			if { [file exists $lookingfor] } then {
-				file stat $lookingfor stat
-				return [list info [array get stat] name $lookingfor]
-			}
-		}
-
-		return {}
-	}
-
-	# 
-	#	Send page not found output
-	#
-	proc page-not-found {chan} {
-		set content "<html><body><p>page not found</p></body></html>"
-
-		puts $chan "HTTP/1.1 404 Not Found"
-		puts $chan "Content-Length: [string length $content]"
-		puts $chan ""
-		puts $chan $content
-
-	}
-
-	proc get-mimetype-for {name} {
-		variable mimetypes
-
-		array set mimemap $mimetypes
-		set extension [file ext $name]
-
-		if {![info exists mimemap($extension)]} {
-			puts "unknown extension $extension"
-			return "application/octet-stream"
-		} 
-
-		return $mimemap($extension)
-	}
-
-	#
-	#	Strip request parameters
-	#
-	proc strip-request-parameters {url} {
-		lassign [split $url "?"] url request
-		return $url
+	public get-contexts-list {} {
+		return $FileServeSocket::contexts
 	}
 
 	#
 	#   Try to find the file in the registered bases and stream it efficiently
 	#
-	proc send-file {chan} {
+	public send-contents {chan} {
 		variable mimetypes
 
 		# sanitize url 
@@ -154,15 +78,60 @@ namespace eval FileServeSocket {
 		HttpServer::close $chan
 	}
 
+
 	#
-	#	Log something to the console
+	#   Find the first file match in the bases we are tracking.
 	#
-	proc log {text} {
-		variable debug
-		if {$debug != 0} then {
-			puts "debug: $text"
+	protected find-first-match {filename} {
+		variable contexts
+
+		foreach ctx $contexts {
+			set lookingfor "$ctx/$filename"
+			if { [file exists $lookingfor] } then {
+				file stat $lookingfor stat
+				return [list info [array get stat] name $lookingfor]
+			}
 		}
+
+		return {}
 	}
+
+	# 
+	#	Send page not found output
+	#
+	protected page-not-found {chan} {
+		set content "<html><body><p>page not found</p></body></html>"
+
+		puts $chan "HTTP/1.1 404 Not Found"
+		puts $chan "Content-Length: [string length $content]"
+		puts $chan ""
+		puts $chan $content
+
+	}
+
+	protected get-mimetype-for {name} {
+		variable mimetypes
+
+		array set mimemap $mimetypes
+		set extension [file ext $name]
+
+		if {![info exists mimemap($extension)]} {
+			puts "unknown extension $extension"
+			return "application/octet-stream"
+		} 
+
+		return $mimemap($extension)
+	}
+
+	#
+	#	Strip request parameters
+	#
+	protected strip-request-parameters {url} {
+		lassign [split $url "?"] url request
+		return $url
+	}
+
+	
 }
 
 proc files'add-context {base} {

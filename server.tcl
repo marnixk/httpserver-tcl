@@ -1,7 +1,7 @@
 #
 #   Socket server that dispatches to proper handler after reading URL
 #
-namespace eval HttpServer {
+module HttpServer {
 
 	variable debug 0
 	variable state
@@ -11,7 +11,7 @@ namespace eval HttpServer {
 	#
 	#  Start a socket server
 	#
-	proc start {port} {
+	public start {port} {
 		socket -server accept $port 
 		vwait forever
 	}
@@ -19,7 +19,7 @@ namespace eval HttpServer {
 	#
 	#  Handler for accepting new connections
 	#
-	proc accept {chan addr port} {
+	protected accept {chan addr port} {
 		variable state
 
 		log "$addr:$port started"
@@ -37,7 +37,7 @@ namespace eval HttpServer {
 	#   Generic socket reader, makes sure to dispatch resulting line to 
 	#   the active state handler
 	#
-	proc read-from-socket {chan} {
+	public read-from-socket {chan} {
 		variable state
 
 		# has a handler? dispatch.
@@ -53,9 +53,46 @@ namespace eval HttpServer {
 
 
 	#
+	#	Return the request url for a specific channel
+	#
+	public request-url {chan} {
+		return $HttpServer::state($chan,url)
+	}
+
+	#
+	#	Return the request path for a specific channel
+	#
+	public request-path {chan} {
+		set url $HttpServer::state($chan,url)
+		set context $HttpServer::state($chan,context)
+
+		set uri [string range $url [string length $context] end]
+		return $uri
+	}
+
+
+	#
+	#  Close a connection and clean up after ourselves
+	#
+	public close {chan} {
+		variable state
+
+		# clean up all state that starts with $chan 
+		foreach name [array names state] {
+			if {[string range $name 0 [string length $chan]-1] == $chan} {
+				unset state($name)
+			}
+		}
+		
+		# clean up channel
+		::close $chan
+	}
+	
+	
+	#
 	#   Read from the http socket and dispatch it to the current state's handler
 	#
-	proc read-http-socket {chan} {
+	protected read-http-socket {chan} {
 		variable state
 
 		set left [gets $chan line]
@@ -72,7 +109,7 @@ namespace eval HttpServer {
 	# 
 	#	Read the URL 
 	#
-	proc read-url {chan line} {
+	protected read-url {chan line} {
 		variable state
 
 		set url [lindex $line 1]
@@ -94,7 +131,7 @@ namespace eval HttpServer {
 	#
 	#	Try and find a handler for this url
 	#
-	proc find-matching-handler {url} {
+	protected find-matching-handler {url} {
 		variable handlers
 		variable default_handler
 
@@ -113,56 +150,21 @@ namespace eval HttpServer {
 	#
 	#   Make sure `str` starts with `start`
 	#
-	proc starts-with {str start} {
+	protected starts-with {str start} {
 		return [expr {[string range $str 0 [string length $start]-1] == $start}]
-	}
-
-
-	#
-	#	Return the request url for a specific channel
-	#
-	proc request-url {chan} {
-		return $HttpServer::state($chan,url)
-	}
-
-	#
-	#	Return the request path for a specific channel
-	#
-	proc request-path {chan} {
-		set url $HttpServer::state($chan,url)
-		set context $HttpServer::state($chan,context)
-
-		set uri [string range $url [string length $context] end]
-		return $uri
 	}
 
 
 	#
 	#	Log something to the console
 	#
-	proc log {text} {
+	protected log {text} {
 		variable debug
 		if {$debug != 0} then {
 			puts "debug: $text"
 		}
 	}
 	
-	#
-	#  Close a connection and clean up after ourselves
-	#
-	proc close {chan} {
-		variable state
-
-		# clean up all state that starts with $chan 
-		foreach name [array names state] {
-			if {[string range $name 0 [string length $chan]-1] == $chan} {
-				unset state($name)
-			}
-		}
-		
-		# clean up channel
-		::close $chan
-	}
 
 }
 
