@@ -1,10 +1,16 @@
 package provide httpserver 1.0
 
+package require TclOO
 package require tclcommon
 
 set pkg_path [file dirname [info script]]
 
-source "$pkg_path/handlerbase.tcl"
-source "$pkg_path/server.tcl"
-source "$pkg_path/fileservesocket.tcl"
+source "$pkg_path/httpResources.tcl"
+source "$pkg_path/httpRequest.tcl"
+source "$pkg_path/httpHandler.tcl"
+source "$pkg_path/httpServer.tcl"
+
+# handlers
+source "$pkg_path/notFoundHandler.tcl"
+source "$pkg_path/fileServeHandler.tcl"
 
