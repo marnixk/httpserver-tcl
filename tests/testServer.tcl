@@ -17,7 +17,9 @@ set serverThreadId [thread::create {
 	set server [DI::get Http::Server]
 	set mounts [DI::get Http::HandlerMounts]
 
-	$mounts add "/public" [DI::get Http::FileServeHandler]
+	$mounts add ".html\??.*$" [DI::get Http::MarkupHandler]
+	$mounts add "^/public" [DI::get Http::FileServeHandler]
+
 
 	# add file context	
 	$resources addBundle "./data/"
@@ -73,8 +75,8 @@ proc simpleClientRetrieve {} {
 # wait a bit
 after 1000 
 
-simpleClient404
-simpleClientRetrieve
+# simpleClient404
+# simpleClientRetrieve
 
 # keep running it so that we can play around with it
 vwait forever

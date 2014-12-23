@@ -28,15 +28,23 @@ oo::class create Http::Handler {
 	#
 	method readHeaders {request line} {
 
-		set headername [string range [lindex $line 0] 0 end-1]
-		set value [string range $line [expr {2 + [string length $headername]}] end]
-
-		$request addHeader $headername $value
-
 		# empty line means end of headers so 'start' doing what
 		# this handler is used for.
 		if {$line == ""} then {
+
+			# posted information? parse the form data
+			if {[$request postRequest?]} then {
+				set postInfo [read [$request chan]]
+				$request parseRequestParameters "?$postInfo"
+			} 
+
+			# start the handling
 			my start $request
+		} else {
+			set headername [string range [lindex $line 0] 0 end-1]
+			set value [string range $line [expr {2 + [string length $headername]}] end]
+
+			$request addHeader $headername $value
 		}
 	}
 

@@ -112,7 +112,6 @@
 		$request setHandler $handlerObjRef
 		$request setHook "readHeaders"
 		$request setMountPath $mountPath
-
 	}
 
 }

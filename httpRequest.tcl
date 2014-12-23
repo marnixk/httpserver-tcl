@@ -91,8 +91,20 @@ oo::class create Http::Request {
 		return [expr {[my param $name] != ""}]
 	}
 
+	method postRequest? {} {
+		return [expr {
+					[my method] == "post" && 
+					[my getHeader "Content-Type"] == "application/x-www-form-urlencoded"
+				}]
+	}
+
 	method param {name} {
-		return [dict get $params $name]
+		if {[dict exists $params $name]} then {
+			return [dict get $params $name]
+		} else {
+			return {}
+		}
+
 	}
 
 	method hasHandler? {} {
@@ -121,23 +133,24 @@ oo::class create Http::Request {
 
 	method setUrl {aUrl} {
 		set url $aUrl
-		my _parseRequestParameters
+		my parseRequestParameters $url
 	}
+
 
 	#
 	#	Parse request parameters
 	#
-	method _parseRequestParameters {} {
+	method parseRequestParameters {reqUrl} {
 		set params [dict create]
 
 		# parse query parameters?
-		set qmIdx [string first "?" $url]
+		set qmIdx [string first "?" $reqUrl]
 		if {$qmIdx != -1} then {
-			set queryParams [string range $url $qmIdx+1 end]
+			set queryParams [string range $reqUrl $qmIdx+1 end]
 			set queryParamsList [split $queryParams "&"]
 			foreach keyValuePair $queryParamsList {
 				lassign [split $keyValuePair "="] key value
-				dict set params $key $value
+				dict set params $key [Http::urlDecode $value]
 			}
 
 			$log debug "Query parameters: $params"
@@ -157,5 +170,10 @@ oo::class create Http::Request {
 
 	method getHeaders {} {
 		return $headers
+	}
+
+	method puts {args} {
+		puts $channel {*}$args
+		flush $channel
 	}
 }

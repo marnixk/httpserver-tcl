@@ -44,12 +44,12 @@
 	#
 	method findMatchingHandler {url} {
 
-		foreach {key handler} $mounts {
-			$log debug "mount: $key -> $handler"
+		foreach {regex handler} $mounts {
+			$log debug "mount: $regex -> $handler"
 
-			if { [my _startsWith $url $key] } then {
-				$log debug "Returning handler for mount: `$key`"
-				return [list $handler $key]
+			if { [regexp -inline $regex $url] != {} } then {
+				$log debug "Returning handler for mount: `$regex`"
+				return [list $handler $regex]
 			}
 		}
 
