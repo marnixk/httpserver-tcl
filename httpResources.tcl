@@ -2,7 +2,7 @@
 
 	variable sources
 
-	@Inject( Std::Logger ) variable log
+	@Logger variable log
 
 	constructor {} {
 		lappend sources

@@ -6,7 +6,7 @@
 	variable sockets
 
 	# logging
-	@Inject( Std::Logger ) variable log
+	@Logger variable log
 
 	# inject all handlers
 	@InjectList( Http::HandlerMounts ) variable mounts

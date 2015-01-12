@@ -2,7 +2,7 @@
 	
 	superclass Http::Handler
 
-	@Inject( Std::Logger ) variable log
+	@Logger variable log
 	@Inject( Http::Resources ) variable resources
 
 	method _templateName {url} {

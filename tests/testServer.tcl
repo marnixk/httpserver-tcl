@@ -20,7 +20,6 @@ set serverThreadId [thread::create {
 	$mounts add ".html\??.*$" [DI::get Http::MarkupHandler]
 	$mounts add "^/public" [DI::get Http::FileServeHandler]
 
-
 	# add file context	
 	$resources addBundle "./data/"
 	

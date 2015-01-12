@@ -8,7 +8,7 @@
 	#
 	#	Logger
 	#
-	@Inject( Std::Logger ) variable log
+	@Logger variable log
 
 	# inject file server handler as default
 	@Inject( Http::NotFoundHandler ) variable defaultHandler

@@ -8,7 +8,7 @@
 	#
 	#	Injects the logger
 	#
-	@Inject( Std::Logger ) variable log
+	@Logger variable log
 
 	#
 	#	Hooks into the resource bundles

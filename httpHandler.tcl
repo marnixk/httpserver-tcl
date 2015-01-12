@@ -1,7 +1,9 @@
 #
 #	This module is includeable
 #
-oo::class create Http::Handler {
+@AbstractComponent oo::class create Http::Handler {
+
+	@Logger variable log
 
 	#
 	#   Read from the http socket and dispatch it to the current state's handler
@@ -14,7 +16,7 @@ oo::class create Http::Handler {
 		# nothing more to read?
 		if { $left < 0 } {
 			if { [eof $chan] } {
-				$log debug "Connection closed [$request chan]"
+				$log debug "Connection closed (chan: [$request chan])"
 				$request destroy
 				return
 			}
