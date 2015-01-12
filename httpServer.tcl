@@ -99,8 +99,8 @@
 
 		lassign $line method url version
 
-		$log "Method: $method"
-		$log "Url: $url"
+		$log info "Method: $method"
+		$log info "Url: $url"
 
 		set handler [$mounts findMatchingHandler $url]
 

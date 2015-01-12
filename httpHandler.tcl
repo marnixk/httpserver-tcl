@@ -61,14 +61,10 @@
 	#
 	method pageNotFound {request} {
 
-		set chan [$request chan]
+		set response [Http::Response new [$request chan]]
 
-		set content "<html><body><p>page not found</p></body></html>"
-
-		puts $chan "HTTP/1.1 404 Not Found"
-		puts $chan "Content-Length: [string length $content]"
-		puts $chan ""
-		puts $chan $content
-
+		$response statusCode= 404
+		$response puts "<html><body><h1>404</h1><p>page not found</p></body></html>"
+		$response flush
 	}
 }

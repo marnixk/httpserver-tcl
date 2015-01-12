@@ -5,13 +5,14 @@ package require tclcommon
 package require Thread
 
 source "../httpRequest.tcl"
+source "../httpResponse.tcl"
 source "../httpHandler.tcl"
 source "../httpHandlerMounts.tcl"
 source "../httpServer.tcl"
 source "../httpResources.tcl"
 source "../httpHelper.tcl"
 
-source "../notFoundHandler.tcl"
-source "../fileServeHandler.tcl"
-source "../markupHandler.tcl"
+source "../handlers/notFoundHandler.tcl"
+source "../handlers/fileServeHandler.tcl"
+source "../handlers/markupHandler.tcl"
 
